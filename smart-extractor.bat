@@ -1,0 +1,1 @@
+smart-extractor.py %1

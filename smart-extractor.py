@@ -21,9 +21,6 @@ def execute(cmd):
 
 	sp.wait()
 
-# with open("output.txt", "w") as f:
-# 	f.write(str(sys.argv))
-
 archiveName = sys.argv[1]
 pureArchiveName = ".".join(archiveName.split(".")[0:-1]) if "." in archiveName else archiveName
 
@@ -31,7 +28,7 @@ targetPath = disambiguate(pureArchiveName)
 os.makedirs(targetPath)
 
 
-cmd = ["C:\\Program Files\\7-Zip\\7z.exe", "x", archiveName, "-o" + targetPath, "-aou"]
+cmd = ["7z.exe", "x", archiveName, "-o" + targetPath, "-aou"]
 execute(cmd)
 
 folderElements = os.listdir(targetPath)
