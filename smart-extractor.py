@@ -11,6 +11,7 @@ def disambiguate(path):
 		disambiguate += 1
 	return newpath
 
+
 def execute(cmd):
 	startupinfo = subprocess.STARTUPINFO()
 	startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -19,24 +20,43 @@ def execute(cmd):
 		startupinfo=startupinfo,
 		shell=True)
 
-	sp.wait()
-
-archiveName = sys.argv[1]
-pureArchiveName = ".".join(archiveName.split(".")[0:-1]) if "." in archiveName else archiveName
-
-targetPath = disambiguate(pureArchiveName)
-os.makedirs(targetPath)
+	exitcode = sp.wait()
+	if exitcode != 0:
+		raise Exception("Exception was raised while executing 7z. Exitcode " + str(exitcode))
 
 
-cmd = ["7z.exe", "x", archiveName, "-o" + targetPath, "-aou"]
-execute(cmd)
+def createWrappingFolder(archiveName):
 
-folderElements = os.listdir(targetPath)
+	pureArchiveName = ".".join(archiveName.split(".")[0:-1]) if "." in archiveName else archiveName
 
-if len(folderElements) == 1:
-	fileToMove = folderElements[0]
-	hoistedPath = disambiguate(fileToMove)
+	targetPath = disambiguate(pureArchiveName)
+	os.makedirs(targetPath)
+	return targetPath
 
- 	shutil.move(targetPath + "\\" + fileToMove, hoistedPath)
- 	os.rmdir(targetPath)
 
+def extractAndMove(archiveName, targetPath):
+
+	execute(["7z.exe", "x", archiveName, "-o" + targetPath, "-aou"])
+
+	folderElements = os.listdir(targetPath)
+
+	if len(folderElements) == 1:
+		fileToMove = folderElements[0]
+		hoistedPath = disambiguate(fileToMove)
+
+	 	shutil.move(targetPath + "\\" + fileToMove, hoistedPath)
+	 	os.rmdir(targetPath)
+
+
+def smartExtract(archiveName):
+
+	try:
+		targetPath = createWrappingFolder(archiveName)
+		extractAndMove(archiveName, targetPath)
+	except Exception, e:
+		print(e)
+		# delete the wrapping folder
+	 	shutil.rmtree(targetPath)
+	 	input("Press Enter to exit...")
+
+smartExtract(sys.argv[1])
